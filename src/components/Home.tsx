@@ -10,6 +10,9 @@ type Props = {
   onSelectExpense: (expense: Expense) => void
   viewedMonth: Date
   onChangeMonth: (updater: (current: Date) => Date) => void
+  accountPhone?: string | null
+  onSignOut?: () => void
+  syncing?: boolean
 }
 
 export default function Home({
@@ -18,7 +21,10 @@ export default function Home({
   onAdd,
   onSelectExpense,
   viewedMonth,
-  onChangeMonth
+  onChangeMonth,
+  accountPhone,
+  onSignOut,
+  syncing
 }: Props) {
   const isCurrentMonth = isSameMonth(todayISO(), viewedMonth)
   const monthExpenses = expenses.filter((e) => isSameMonth(e.date, viewedMonth))
@@ -31,6 +37,16 @@ export default function Home({
 
   return (
     <div className="mx-auto max-w-md pb-28">
+      {accountPhone && (
+        <div className="flex items-center justify-between px-5 pt-4 text-xs text-ink-muted">
+          <span>{accountPhone}{syncing ? ' · syncing…' : ''}</span>
+          {onSignOut && (
+            <button type="button" onClick={onSignOut} className="text-ink-muted underline underline-offset-2">
+              Sign out
+            </button>
+          )}
+        </div>
+      )}
       <header className="px-5 pb-2 pt-8">
         <div className="flex items-center gap-1">
           <button

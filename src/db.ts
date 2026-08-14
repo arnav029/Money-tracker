@@ -96,3 +96,15 @@ export async function deleteExpense(id: string): Promise<void> {
   const db = await getDB()
   await db.delete('expenses', id)
 }
+
+/** Writes an expense as-is (used to merge rows pulled from the cloud) — no id/createdAt generation. */
+export async function putExpenseRaw(expense: Expense): Promise<void> {
+  const db = await getDB()
+  await db.put('expenses', expense)
+}
+
+/** Wipes locally cached expenses, e.g. on sign-out so the next person on this device doesn't see them. */
+export async function clearLocalExpenses(): Promise<void> {
+  const db = await getDB()
+  await db.clear('expenses')
+}
