@@ -20,6 +20,18 @@ export function isSameMonth(dateISO: string, ref: Date = new Date()): boolean {
   return d.getFullYear() === ref.getFullYear() && d.getMonth() === ref.getMonth()
 }
 
+export function startOfMonth(date: Date = new Date()): Date {
+  return new Date(date.getFullYear(), date.getMonth(), 1)
+}
+
+export function shiftMonth(date: Date, delta: number): Date {
+  return new Date(date.getFullYear(), date.getMonth() + delta, 1)
+}
+
+export function monthYearLabel(date: Date): string {
+  return date.toLocaleDateString(undefined, { month: 'long', year: 'numeric' })
+}
+
 export function formatDateLabel(dateISO: string): string {
   const d = new Date(dateISO + 'T00:00:00')
   const today = todayISO()

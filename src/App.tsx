@@ -9,6 +9,7 @@ import {
   addCategory
 } from './db'
 import type { Category, Expense } from './types'
+import { startOfMonth } from './format'
 import Home from './components/Home'
 import AddExpense from './components/AddExpense'
 
@@ -19,6 +20,7 @@ export default function App() {
   const [categories, setCategories] = useState<Category[]>([])
   const [expenses, setExpenses] = useState<Expense[]>([])
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null)
+  const [viewedMonth, setViewedMonth] = useState(() => startOfMonth())
   const [ready, setReady] = useState(false)
 
   const refresh = useCallback(async () => {
@@ -78,7 +80,14 @@ export default function App() {
   return (
     <div className="min-h-dvh bg-surface-plane dark:bg-surface-darkplane">
       {view === 'home' && (
-        <Home categories={categories} expenses={expenses} onAdd={openAdd} onSelectExpense={openEdit} />
+        <Home
+          categories={categories}
+          expenses={expenses}
+          onAdd={openAdd}
+          onSelectExpense={openEdit}
+          viewedMonth={viewedMonth}
+          onChangeMonth={setViewedMonth}
+        />
       )}
       {view === 'add' && (
         <AddExpense

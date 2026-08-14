@@ -6,17 +6,21 @@ type Props = {
   categories: Category[]
   expenses: Expense[]
   onSelect: (expense: Expense) => void
+  emptyMessage?: string
 }
 
-export default function TransactionList({ categories, expenses, onSelect }: Props) {
+export default function TransactionList({
+  categories,
+  expenses,
+  onSelect,
+  emptyMessage = 'No expenses yet — tap + to add your first one'
+}: Props) {
   const categoryMap = new Map(categories.map((c) => [c.id, c]))
 
   if (expenses.length === 0) {
     return (
       <div className="rounded-2xl border border-dashed border-line py-10 text-center dark:border-line-dark">
-        <p className="text-ink-secondary dark:text-ink-secondary-dark">
-          No expenses yet — tap + to add your first one
-        </p>
+        <p className="text-ink-secondary dark:text-ink-secondary-dark">{emptyMessage}</p>
       </div>
     )
   }
