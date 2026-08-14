@@ -16,7 +16,7 @@ import { supabase, isSupabaseConfigured } from './lib/supabase'
 import { pullRemoteExpenses, pushExpenseUpsert, pushExpenseDelete } from './sync'
 import Home from './components/Home'
 import AddExpense from './components/AddExpense'
-import PhoneSignIn from './components/PhoneSignIn'
+import EmailSignIn from './components/EmailSignIn'
 
 type View = 'home' | 'add'
 
@@ -134,7 +134,7 @@ export default function App() {
   if (isSupabaseConfigured && !session) {
     return (
       <div className="min-h-dvh bg-surface-plane dark:bg-surface-darkplane">
-        <PhoneSignIn />
+        <EmailSignIn />
       </div>
     )
   }
@@ -149,7 +149,7 @@ export default function App() {
           onSelectExpense={openEdit}
           viewedMonth={viewedMonth}
           onChangeMonth={setViewedMonth}
-          accountPhone={session?.user.phone ?? null}
+          accountEmail={session?.user.email ?? null}
           onSignOut={session ? handleSignOut : undefined}
           syncing={syncing}
         />

@@ -10,7 +10,7 @@ type Props = {
   onSelectExpense: (expense: Expense) => void
   viewedMonth: Date
   onChangeMonth: (updater: (current: Date) => Date) => void
-  accountPhone?: string | null
+  accountEmail?: string | null
   onSignOut?: () => void
   syncing?: boolean
 }
@@ -22,7 +22,7 @@ export default function Home({
   onSelectExpense,
   viewedMonth,
   onChangeMonth,
-  accountPhone,
+  accountEmail,
   onSignOut,
   syncing
 }: Props) {
@@ -37,9 +37,9 @@ export default function Home({
 
   return (
     <div className="mx-auto max-w-md pb-28">
-      {accountPhone && (
+      {accountEmail && (
         <div className="flex items-center justify-between px-5 pt-4 text-xs text-ink-muted">
-          <span>{accountPhone}{syncing ? ' · syncing…' : ''}</span>
+          <span>{accountEmail}{syncing ? ' · syncing…' : ''}</span>
           {onSignOut && (
             <button type="button" onClick={onSignOut} className="text-ink-muted underline underline-offset-2">
               Sign out
