@@ -62,32 +62,44 @@ export default function PhoneSignIn() {
     }
   }
 
-  function setDigitAt(index: number, value: string) {
-    const next = [...digits]
-    next[index] = value
+  /** Fills every box from a full (or partial) code string — used by paste and by autofill,
+   *  which sets an input's value directly rather than firing a paste event. */
+  function applyFullCode(raw: string) {
+    const code = raw.replace(/\D/g, '').slice(0, CODE_LENGTH)
+    if (!code) return
+    const next = Array(CODE_LENGTH).fill('')
+    for (let i = 0; i < code.length; i++) next[i] = code[i]
     setDigits(next)
+    codeInputs.current[Math.min(code.length, CODE_LENGTH - 1)]?.focus()
+    if (code.length === CODE_LENGTH) submitCode(code)
+  }
+
+  function handleDigitChange(index: number, rawValue: string) {
+    const incoming = rawValue.replace(/\D/g, '')
+    if (incoming.length > 1) {
+      applyFullCode(incoming)
+      return
+    }
+    const next = [...digits]
+    next[index] = incoming
+    setDigits(next)
+    if (incoming && index < CODE_LENGTH - 1) codeInputs.current[index + 1]?.focus()
     const code = next.join('')
-    if (value && index < CODE_LENGTH - 1) codeInputs.current[index + 1]?.focus()
     if (code.length === CODE_LENGTH) submitCode(code)
   }
 
   function handleCodeKeyDown(index: number, e: React.KeyboardEvent<HTMLInputElement>) {
     if (e.key === 'Backspace' && !digits[index] && index > 0) {
       codeInputs.current[index - 1]?.focus()
-      setDigitAt(index - 1, '')
+      handleDigitChange(index - 1, '')
     }
   }
 
   function handleCodePaste(e: React.ClipboardEvent<HTMLInputElement>) {
-    const pasted = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, CODE_LENGTH)
-    if (!pasted) return
+    const pasted = e.clipboardData.getData('text')
+    if (!/\d/.test(pasted)) return
     e.preventDefault()
-    const next = Array(CODE_LENGTH).fill('')
-    for (let i = 0; i < pasted.length; i++) next[i] = pasted[i]
-    setDigits(next)
-    const focusIndex = Math.min(pasted.length, CODE_LENGTH - 1)
-    codeInputs.current[focusIndex]?.focus()
-    if (pasted.length === CODE_LENGTH) submitCode(pasted)
+    applyFullCode(pasted)
   }
 
   return (
@@ -147,12 +159,12 @@ export default function PhoneSignIn() {
                     }}
                     type="text"
                     inputMode="numeric"
-                    autoComplete={index === 0 ? 'one-time-code' : 'off'}
-                    maxLength={1}
+                    autoComplete="one-time-code"
                     value={digit}
-                    onChange={(e) => setDigitAt(index, e.target.value.replace(/\D/g, '').slice(-1))}
+                    onChange={(e) => handleDigitChange(index, e.target.value)}
                     onKeyDown={(e) => handleCodeKeyDown(index, e)}
                     onPaste={handleCodePaste}
+                    onFocus={(e) => e.target.select()}
                     className="tabular h-14 w-11 rounded-xl border border-line bg-transparent text-center text-lg font-semibold outline-none focus:border-accent dark:border-line-dark dark:focus:border-accent-dark"
                   />
                 ))}
