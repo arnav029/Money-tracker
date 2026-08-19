@@ -6,10 +6,8 @@ const RECAPTCHA_CONTAINER_ID = 'recaptcha-container'
 
 type Step = 'phone' | 'code'
 
-function toE164(input: string): string | null {
-  const trimmed = input.trim()
-  if (/^\+\d{8,15}$/.test(trimmed)) return trimmed
-  const digits = trimmed.replace(/\D/g, '')
+function toE164(digitsInput: string): string | null {
+  const digits = digitsInput.replace(/\D/g, '')
   if (/^\d{10}$/.test(digits)) return `+91${digits}`
   return null
 }
@@ -25,7 +23,7 @@ export default function PhoneSignIn() {
   async function submitPhone() {
     const e164 = toE164(phone)
     if (!e164) {
-      setError('Enter a 10-digit number, or include a country code like +1')
+      setError('Enter a valid 10-digit phone number')
       return
     }
     setBusy(true)
@@ -64,28 +62,30 @@ export default function PhoneSignIn() {
       <div className="mb-10 text-center">
         <p className="text-3xl font-semibold tracking-tight">Pocket</p>
         <p className="mt-1 text-sm text-ink-muted">
-          {step === 'phone' ? 'Sign in with your phone to sync your expenses' : `Enter the code sent to ${phone}`}
+          {step === 'phone' ? 'Sign in with your phone to sync your expenses' : `Enter the code sent to +91 ${phone}`}
         </p>
       </div>
 
       <div className="space-y-4">
         {step === 'phone' ? (
           <div>
-            <label htmlFor="phone" className="mb-2 block text-sm text-ink-muted">
-              Phone number
-            </label>
-            <input
-              id="phone"
-              type="tel"
-              inputMode="tel"
-              autoComplete="tel"
-              autoFocus
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && submitPhone()}
-              placeholder="10-digit number or +country code"
-              className="w-full rounded-xl border border-line bg-transparent px-3.5 py-3 text-base outline-none focus:border-accent dark:border-line-dark dark:focus:border-accent-dark"
-            />
+            <div className="flex items-stretch gap-2">
+              <span className="flex items-center rounded-xl border border-line px-3.5 text-base text-ink-muted dark:border-line-dark">
+                +91
+              </span>
+              <input
+                id="phone"
+                type="tel"
+                inputMode="numeric"
+                autoComplete="tel"
+                autoFocus
+                value={phone}
+                onChange={(e) => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                onKeyDown={(e) => e.key === 'Enter' && submitPhone()}
+                placeholder="Enter phone number"
+                className="w-full rounded-xl border border-line bg-transparent px-3.5 py-3 text-base outline-none focus:border-accent dark:border-line-dark dark:focus:border-accent-dark"
+              />
+            </div>
           </div>
         ) : (
           <div>
@@ -115,7 +115,7 @@ export default function PhoneSignIn() {
           disabled={busy}
           className="w-full rounded-2xl bg-accent py-3.5 text-base font-semibold text-white transition-opacity disabled:opacity-30 dark:bg-accent-dark dark:text-surface-darkplane"
         >
-          {busy ? 'Please wait…' : step === 'phone' ? 'Send code' : 'Verify & sign in'}
+          {busy ? 'Please wait…' : step === 'phone' ? 'Continue' : 'Verify & sign in'}
         </button>
 
         {step === 'code' && (
