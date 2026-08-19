@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
-import type { Session } from '@supabase/supabase-js'
+import type { User } from 'firebase/auth'
 import {
   ensureSeeded,
   listCategories,
@@ -12,11 +12,12 @@ import {
 } from './db'
 import type { Category, Expense } from './types'
 import { startOfMonth } from './format'
-import { supabase, isSupabaseConfigured } from './lib/supabase'
+import { isSupabaseConfigured } from './lib/supabase'
+import { watchAuthState, signOutFirebase } from './lib/firebase'
 import { pullRemoteExpenses, pushExpenseUpsert, pushExpenseDelete } from './sync'
 import Home from './components/Home'
 import AddExpense from './components/AddExpense'
-import EmailSignIn from './components/EmailSignIn'
+import PhoneSignIn from './components/PhoneSignIn'
 
 type View = 'home' | 'add'
 
@@ -27,7 +28,7 @@ export default function App() {
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null)
   const [viewedMonth, setViewedMonth] = useState(() => startOfMonth())
   const [ready, setReady] = useState(false)
-  const [session, setSession] = useState<Session | null>(null)
+  const [session, setSession] = useState<User | null>(null)
   const [authReady, setAuthReady] = useState(!isSupabaseConfigured)
   const [syncing, setSyncing] = useState(false)
   const pulledForUserId = useRef<string | null>(null)
@@ -45,15 +46,11 @@ export default function App() {
   }, [refresh])
 
   useEffect(() => {
-    if (!supabase) return
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session)
+    if (!isSupabaseConfigured) return
+    return watchAuthState((user) => {
+      setSession(user)
       setAuthReady(true)
     })
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, newSession) => {
-      setSession(newSession)
-    })
-    return () => sub.subscription.unsubscribe()
   }, [])
 
   useEffect(() => {
@@ -61,10 +58,10 @@ export default function App() {
       pulledForUserId.current = null
       return
     }
-    if (pulledForUserId.current === session.user.id) return
-    pulledForUserId.current = session.user.id
+    if (pulledForUserId.current === session.uid) return
+    pulledForUserId.current = session.uid
     setSyncing(true)
-    pullRemoteExpenses(session.user.id)
+    pullRemoteExpenses(session.uid)
       .then(refresh)
       .finally(() => setSyncing(false))
   }, [session, refresh])
@@ -97,7 +94,7 @@ export default function App() {
 
     if (session) {
       const categoryName = categories.find((c) => c.id === input.categoryId)?.name ?? 'Other'
-      pushExpenseUpsert(saved, categoryName, session.user.id)
+      pushExpenseUpsert(saved, categoryName, session.uid)
     }
   }
 
@@ -120,8 +117,7 @@ export default function App() {
   }
 
   async function handleSignOut() {
-    if (!supabase) return
-    await supabase.auth.signOut()
+    await signOutFirebase()
     await clearLocalExpenses()
     await refresh()
     closeForm()
@@ -134,7 +130,7 @@ export default function App() {
   if (isSupabaseConfigured && !session) {
     return (
       <div className="min-h-dvh bg-surface-plane dark:bg-surface-darkplane">
-        <EmailSignIn />
+        <PhoneSignIn />
       </div>
     )
   }
@@ -149,7 +145,7 @@ export default function App() {
           onSelectExpense={openEdit}
           viewedMonth={viewedMonth}
           onChangeMonth={setViewedMonth}
-          accountEmail={session?.user.email ?? null}
+          accountPhone={session?.phoneNumber ?? null}
           onSignOut={session ? handleSignOut : undefined}
           syncing={syncing}
         />

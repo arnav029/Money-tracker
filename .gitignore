@@ -7,3 +7,7 @@ dist-ssr
 .vscode/*
 !.vscode/extensions.json
 .DS_Store
+.firebaserc
+functions/node_modules
+firebase-debug.log
+.firebase
